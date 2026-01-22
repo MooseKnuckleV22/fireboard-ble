@@ -1,4 +1,4 @@
-"""Support for FireBoard BLE sensors (v1.4.6 - Connected Via)."""
+"""Support for FireBoard BLE sensors (v1.4.7)."""
 from __future__ import annotations
 
 import logging
