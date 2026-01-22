@@ -1,4 +1,4 @@
-"""Support for FireBoard BLE sensors (v1.4.5 - Source Diagnostics)."""
+"""Support for FireBoard BLE sensors (v1.4.6 - Connected Via)."""
 from __future__ import annotations
 
 import logging
@@ -88,7 +88,7 @@ async def async_setup_entry(
     entities = []
     entities.append(FireboardRSSISensor(hub))
     entities.append(FireboardStatusSensor(hub))
-    entities.append(FireboardSourceSensor(hub))  # NEW: Source Sensor
+    entities.append(FireboardSourceSensor(hub))
     
     async_add_entities(entities)
     
@@ -115,13 +115,13 @@ class FireboardHub:
         self.sensors = {} 
         self.rssi_sensor = None
         self.status_sensor = None
-        self.source_sensor = None  # NEW
+        self.source_sensor = None 
         self._running = True
         self._cancel_callback = None
 
     def register_rssi_sensor(self, sensor_entity): self.rssi_sensor = sensor_entity
     def register_status_sensor(self, sensor_entity): self.status_sensor = sensor_entity
-    def register_source_sensor(self, sensor_entity): self.source_sensor = sensor_entity # NEW
+    def register_source_sensor(self, sensor_entity): self.source_sensor = sensor_entity
 
     def stop(self):
         self._running = False
@@ -174,11 +174,9 @@ class FireboardHub:
 
     @callback
     def _handle_bluetooth_event(self, service_info, change: BluetoothChange):
-        # Update RSSI
         if self.rssi_sensor and service_info.rssi != -100:
             self.rssi_sensor.update_rssi(service_info.rssi)
         
-        # NEW: Update Source (Parent Device)
         if self.source_sensor:
             self.source_sensor.update_source(service_info.source)
 
@@ -371,7 +369,7 @@ class FireboardStatusSensor(SensorEntity):
 class FireboardSourceSensor(SensorEntity):
     """Shows which Bluetooth adapter (or Proxy) is seeing the device."""
     _attr_has_entity_name = True
-    _attr_name = "Bluetooth Source"
+    _attr_name = "Connected Via"  # RENAME APPLIED HERE
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_icon = "mdi:router-wireless"
 

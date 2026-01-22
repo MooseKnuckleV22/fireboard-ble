@@ -1,7 +1,7 @@
 {
   "domain": "fireboard_ble",
   "name": "FireBoard BLE",
-  "version": "1.4.5",
+  "version": "1.4.6",
   "documentation": "https://github.com/MooseKnuckleV22/fireboard-ble",
   "dependencies": [],
   "codeowners": ["@MooseKnuckleV22"],
@@ -11,6 +11,9 @@
   "bluetooth": [
     {
       "service_uuid": "c2f780ec-45e1-452b-a879-327e3140d1f1"
+    },
+    {
+      "local_name": "FireBoard"
     }
   ]
 }
