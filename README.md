@@ -1,6 +1,6 @@
 # FireBoard BLE Custom Integration
 
-**Current Version:** 1.4.1
+**Current Version:** 1.4.2
 **Status:** Stable / Production
 **Last Updated:** January 22, 2026
 
@@ -23,12 +23,16 @@ If you require historical session data, battery levels, or fan control, please u
 
 ### Version History
 
+**Version 1.4.2**
+* **ADDED:** Failsafe Manual Entry. If the automatic Bluetooth scan fails to find a device, the setup screen now provides a text box to manually enter the MAC address.
+* **IMPROVED:** Enhanced Discovery Logic. The scanner now searches for devices broadcasting the name "FireBoard" in addition to the strict Service UUID, improving detection reliability.
+
 **Version 1.4.1**
 * **FIXED:** Added missing `config_flow: true` to manifest, allowing installation via the Home Assistant UI.
 * **IMPROVED:** Refined Config Flow logic for smoother Bluetooth scanning during setup.
 
 **Version 1.4.0**
-* **ADDED:** Zero-Configuration Discovery. The integration now scans for nearby FireBoards and presents a dropdown list during setup. No MAC address entry required.
+* **ADDED:** Zero-Configuration Discovery. The integration now scans for nearby FireBoards and presents a dropdown list during setup.
 * **ADDED:** Dynamic "Plug-and-Play" Probes. Sensors are created in Home Assistant immediately when a probe is plugged in and are removed 30 seconds after being unplugged.
 * **ADDED:** Split MQTT Publishing. If enabled, data is published to granular topics (e.g., `.../probe1`, `.../ambient`) for easier consumption by other tools.
 * **ADDED:** Proxy Exhaustion Handler. Intelligent back-off logic when connecting via full ESPHome proxies.
@@ -58,14 +62,4 @@ If you use ESPHome Bluetooth Proxies to extend range, be aware that the ESP32 ha
 
 If your proxy is already connected to 3 other devices (e.g., SwitchBot, Toothbrush, Plant Monitor), it physically cannot connect to the FireBoard.
 
-* **Fix:** Add an additional Bluetooth Proxy to your network to handle the load. This integration supports "Roaming" and will automatically find the free proxy.
-
-#### 2. The "One Connection" Rule
-The FireBoard device accepts only ONE active Bluetooth connection.
-* If your phone's FireBoard app connects via Bluetooth, Home Assistant will be blocked.
-* If Home Assistant connects, your phone app will fail to connect via Bluetooth (but will still work via WiFi/Cloud).
-
-* **Fix:** If the integration gets stuck on "Initializing" or "Retrying", turn off Bluetooth on your phone and power cycle the FireBoard unit.
-
-#### 3. "Ghost" Sensors
-If you unplug a probe, the sensor should disappear from Home Assistant within 30 seconds. If it does not, check the Logs. The integration requires a running Watchdog timer (updates every 10s) to perform this cleanup.
+* **Fix:** Add an additional Bluetooth Proxy to your network to handle the load. This integration supports "Roaming" and will automatically find the
