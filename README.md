@@ -1,6 +1,6 @@
 # FireBoard BLE Custom Integration
 
-**Current Version:** 1.4.6
+**Current Version:** 1.4.7
 **Status:** Stable / Production
 **Last Updated:** January 22, 2026
 
@@ -23,25 +23,27 @@ If you require historical session data, battery levels, or fan control, please u
 
 ### Version History
 
-**Version 1.4.6**
-* **RESTORED:** Native Auto-Discovery. The "Discovered" tile will now correctly appear in the Home Assistant dashboard when a FireBoard is detected nearby, even if the integration is not yet configured.
+**Version 1.4.7**
+* **RESTORED:** Native Auto-Discovery. The "Discovered" tile will now correctly appear in the Home Assistant dashboard when a FireBoard is detected nearby. Updated logic to include devices broadcasting as `FIREBOARD` (all caps), `fireboard` (lowercase), or `FireBoard` (mixed case).
 * **IMPROVED:** Renamed the Diagnostic Sensor to **"Connected Via"**. This user-friendly label clearly indicates which device (e.g., `local` Raspberry Pi or `esphome-proxy-kitchen`) is currently bridging the connection to the FireBoard.
 
-**Version 1.4.5**
+**Version 1.4.6**
 * **ADDED:** Diagnostic Sensor (backend support). Added logic to track the active Bluetooth source adapter.
 
-**Version 1.4.4**
-* **IMPROVED:** Discovery logic is now case-insensitive, ensuring devices broadcasting "fireboard" (lowercase) or other variations are correctly detected in the setup list.
+**Version 1.4.5**
+* **IMPROVED:** Discovery logic is now case-insensitive.
 
-**Version 1.4.3**
+**Version 1.4.4**
 * **FIXED:** Resolved "500 Internal Server Error" crash during setup caused by nearby Bluetooth devices broadcasting without a name.
 
-**Version 1.4.2**
+**Version 1.4.3**
 * **ADDED:** Failsafe Manual Entry. If the automatic Bluetooth scan fails to find a device, the setup screen now provides a text box to manually enter the MAC address.
 * **IMPROVED:** Enhanced Discovery Logic. The scanner now searches for devices broadcasting the name "FireBoard" in addition to the strict Service UUID, improving detection reliability.
 
-**Version 1.4.1**
+**Version 1.4.2**
 * **FIXED:** Added missing `config_flow: true` to manifest, allowing installation via the Home Assistant UI.
+
+**Version 1.4.1**
 * **IMPROVED:** Refined Config Flow logic for smoother Bluetooth scanning during setup.
 
 **Version 1.4.0**
@@ -65,3 +67,24 @@ If you require historical session data, battery levels, or fan control, please u
 
 **Version 1.0.0**
 * Initial release. Proof of concept for local Bluetooth polling.
+
+---
+
+### Troubleshooting & Limitations
+
+#### 1. The "Connection Slot" Error (ESPHome Proxies)
+If you use ESPHome Bluetooth Proxies to extend range, be aware that the ESP32 hardware has a physical limit of 3 simultaneous active connections.
+
+If your proxy is already connected to 3 other devices (e.g., SwitchBot, Toothbrush, Plant Monitor), it physically cannot connect to the FireBoard.
+
+* **Fix:** Add an additional Bluetooth Proxy to your network to handle the load. This integration supports "Roaming" and will automatically find the free proxy.
+
+#### 2. The "One Connection" Rule
+The FireBoard device accepts only ONE active Bluetooth connection.
+* If your phone's FireBoard app connects via Bluetooth, Home Assistant will be blocked.
+* If Home Assistant connects, your phone app will fail to connect via Bluetooth (but will still work via WiFi/Cloud).
+
+* **Fix:** If the integration gets stuck on "Initializing" or "Retrying", turn off Bluetooth on your phone and power cycle the FireBoard unit.
+
+#### 3. "Ghost" Sensors
+If you unplug a probe, the sensor should disappear from Home Assistant within 30 seconds. If it does not, check the Logs. The integration requires a running Watchdog timer (updates every 10s) to perform this cleanup.
