@@ -61,46 +61,57 @@ class FireboardConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle the user step to pick discovered devices."""
+        errors = {}
+
         if user_input is not None:
             address = user_input[CONF_ADDRESS]
             await self.async_set_unique_id(address, raise_on_progress=False)
             self._abort_if_unique_id_configured()
             
-            # Find the device name from scan results
-            name = f"FireBoard {address}"
-            for service_info in async_discovered_service_info(self.hass):
-                if service_info.address == address:
-                    name = service_info.name
-                    break
-
             return self.async_create_entry(
-                title=name,
+                title=f"FireBoard {address}",
                 data={
                     CONF_ADDRESS: address,
                     CONF_ENABLE_MQTT: user_input.get(CONF_ENABLE_MQTT, False),
                 },
             )
 
-        # Scan for devices with our Service UUID
+        # 1. SCAN FOR DEVICES
         current_addresses = self._async_current_ids()
         discovered_devices = {}
         
         for service_info in async_discovered_service_info(self.hass):
+            if service_info.address in current_addresses:
+                continue
+                
+            # Match by UUID OR by Name (More robust)
             if (
-                service_info.address not in current_addresses
-                and "c2f780ec-45e1-452b-a879-327e3140d1f1" in service_info.service_uuids
+                "c2f780ec-45e1-452b-a879-327e3140d1f1" in service_info.service_uuids
+                or "FireBoard" in service_info.name
+                or "FireBoard" in service_info.advertisement.local_name
             ):
                 discovered_devices[service_info.address] = (
                     f"{service_info.name} ({service_info.address})"
                 )
 
-        if not discovered_devices:
-            return self.async_abort(reason="no_devices_found")
-
+        # 2. LOGIC: IF FOUND -> DROPDOWN. IF NOT -> TEXT BOX.
+        if discovered_devices:
+            return self.async_show_form(
+                step_id="user",
+                errors=errors,
+                data_schema=vol.Schema({
+                    vol.Required(CONF_ADDRESS): vol.In(discovered_devices),
+                    vol.Optional(CONF_ENABLE_MQTT, default=False): bool,
+                }),
+            )
+        
+        # FAILSAFE: Manual Entry
         return self.async_show_form(
             step_id="user",
+            errors=errors,
+            description_placeholders={"error_info": "No devices found. Enter MAC Manually."},
             data_schema=vol.Schema({
-                vol.Required(CONF_ADDRESS): vol.In(discovered_devices),
+                vol.Required(CONF_ADDRESS): str,
                 vol.Optional(CONF_ENABLE_MQTT, default=False): bool,
             }),
         )

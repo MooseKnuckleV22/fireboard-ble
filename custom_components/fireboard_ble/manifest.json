@@ -1,7 +1,7 @@
 {
   "domain": "fireboard_ble",
   "name": "FireBoard BLE",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "documentation": "https://github.com/[YOUR_GITHUB_USERNAME]/fireboard-ble",
   "dependencies": [],
   "codeowners": ["@[YOUR_GITHUB_USERNAME]"],
