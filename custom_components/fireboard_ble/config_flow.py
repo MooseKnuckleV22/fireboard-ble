@@ -36,15 +36,41 @@ class FireboardConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         await self.async_set_unique_id(discovery_info.address)
         self._abort_if_unique_id_configured()
         self._discovery_info = discovery_info
+
+        # --- NEW NAMING LOGIC FOR 1.4.7.1 ---
+        # We calculate the friendly name here so the Discovery Tile 
+        # shows "FireBoard-9F:3E" instead of "fireboard_ble"
+        address = discovery_info.address
+        mac_parts = address.split(":")
+        if len(mac_parts) == 6:
+            suffix = f"{mac_parts[-2]}:{mac_parts[-1]}"
+        else:
+            suffix = address[-5:]
+        
+        friendly_name = f"FireBoard-{suffix}"
+        
+        # This tells HA to use this name in the Dashboard Tile title
+        self.context["title_placeholders"] = {"name": friendly_name}
+        # ------------------------------------
+
         return await self.async_step_bluetooth_confirm()
 
     async def async_step_bluetooth_confirm(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Confirm discovery."""
+        # Recalculate name for the entry title
+        address = self._discovery_info.address
+        mac_parts = address.split(":")
+        if len(mac_parts) == 6:
+            suffix = f"{mac_parts[-2]}:{mac_parts[-1]}"
+        else:
+            suffix = address[-5:]
+        friendly_name = f"FireBoard-{suffix}"
+
         if user_input is not None:
             return self.async_create_entry(
-                title=self._discovery_info.name,
+                title=friendly_name,
                 data={
                     CONF_ADDRESS: self._discovery_info.address,
                     CONF_ENABLE_MQTT: user_input.get(CONF_ENABLE_MQTT, False),
@@ -53,7 +79,7 @@ class FireboardConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="bluetooth_confirm",
-            description_placeholders={"name": self._discovery_info.name},
+            description_placeholders={"name": friendly_name},
             data_schema=vol.Schema({
                 vol.Optional(CONF_ENABLE_MQTT, default=False): bool
             }),
@@ -71,8 +97,16 @@ class FireboardConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             await self.async_set_unique_id(address, raise_on_progress=False)
             self._abort_if_unique_id_configured()
             
+            # Formatting name for Manual/Dropdown Entry
+            mac_parts = address.split(":")
+            if len(mac_parts) == 6:
+                suffix = f"{mac_parts[-2]}:{mac_parts[-1]}"
+            else:
+                suffix = address[-5:]
+            friendly_name = f"FireBoard-{suffix}"
+            
             return self.async_create_entry(
-                title=f"FireBoard {address}",
+                title=friendly_name,
                 data={
                     CONF_ADDRESS: address,
                     CONF_ENABLE_MQTT: user_input.get(CONF_ENABLE_MQTT, False),
