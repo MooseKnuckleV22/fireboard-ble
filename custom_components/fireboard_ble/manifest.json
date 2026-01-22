@@ -1,12 +1,13 @@
 {
   "domain": "fireboard_ble",
   "name": "FireBoard BLE",
-  "version": "1.4.0",
-  "documentation": "https://github.com/MooseKnuckleV22/fireboard-ble",
+  "version": "1.4.1",
+  "documentation": "https://github.com/[YOUR_GITHUB_USERNAME]/fireboard-ble",
   "dependencies": [],
-  "codeowners": ["@[MooseKnuckleV22"],
+  "codeowners": ["@[YOUR_GITHUB_USERNAME]"],
   "requirements": ["bleak-retry-connector>=2.9.0"],
   "iot_class": "local_polling",
+  "config_flow": true,
   "bluetooth": [
     {
       "service_uuid": "c2f780ec-45e1-452b-a879-327e3140d1f1"

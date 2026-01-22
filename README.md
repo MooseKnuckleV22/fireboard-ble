@@ -1,8 +1,8 @@
 # FireBoard BLE Custom Integration
 
-**Current Version:** 1.4.0  
-**Status:** Stable / Production  
-**Last Updated:** January 21, 2026
+**Current Version:** 1.4.1
+**Status:** Stable / Production
+**Last Updated:** January 22, 2026
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
 
@@ -22,6 +22,10 @@ If you require historical session data, battery levels, or fan control, please u
 ---
 
 ### Version History
+
+**Version 1.4.1**
+* **FIXED:** Added missing `config_flow: true` to manifest, allowing installation via the Home Assistant UI.
+* **IMPROVED:** Refined Config Flow logic for smoother Bluetooth scanning during setup.
 
 **Version 1.4.0**
 * **ADDED:** Zero-Configuration Discovery. The integration now scans for nearby FireBoards and presents a dropdown list during setup. No MAC address entry required.
