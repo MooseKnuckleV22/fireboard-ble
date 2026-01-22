@@ -18,6 +18,8 @@ from .const import DOMAIN, CONF_ENABLE_MQTT
 
 _LOGGER = logging.getLogger(__name__)
 
+FIREBOARD_UUID = "c2f780ec-45e1-452b-a879-327e3140d1f1"
+
 class FireboardConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for FireBoard BLE."""
 
@@ -63,6 +65,7 @@ class FireboardConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle the user step to pick discovered devices."""
         errors = {}
 
+        # 1. If user has selected a device (or entered manual ID), create entry
         if user_input is not None:
             address = user_input[CONF_ADDRESS]
             await self.async_set_unique_id(address, raise_on_progress=False)
@@ -76,42 +79,41 @@ class FireboardConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 },
             )
 
-        # 1. SCAN FOR DEVICES
+        # 2. Scan for devices
         current_addresses = self._async_current_ids()
         discovered_devices = {}
         
         for service_info in async_discovered_service_info(self.hass):
             if service_info.address in current_addresses:
                 continue
-                
-            # Match by UUID OR by Name (More robust)
-            if (
-                "c2f780ec-45e1-452b-a879-327e3140d1f1" in service_info.service_uuids
-                or "FireBoard" in service_info.name
-                or "FireBoard" in service_info.advertisement.local_name
-            ):
+            
+            # Robust Filtering: Check UUID or Name (Case Insensitive)
+            dev_name = (service_info.name or "").lower()
+            local_name = (service_info.advertisement.local_name or "").lower()
+            has_uuid = FIREBOARD_UUID in service_info.service_uuids
+            
+            if has_uuid or "fireboard" in dev_name or "fireboard" in local_name:
                 discovered_devices[service_info.address] = (
                     f"{service_info.name} ({service_info.address})"
                 )
 
-        # 2. LOGIC: IF FOUND -> DROPDOWN. IF NOT -> TEXT BOX.
-        if discovered_devices:
+        # 3. Show Form
+        # If no devices found, we allow manual entry (standard HA behavior)
+        if not discovered_devices:
             return self.async_show_form(
                 step_id="user",
-                errors=errors,
+                errors={"base": "no_devices_found"},
                 data_schema=vol.Schema({
-                    vol.Required(CONF_ADDRESS): vol.In(discovered_devices),
+                    vol.Required(CONF_ADDRESS): str,
                     vol.Optional(CONF_ENABLE_MQTT, default=False): bool,
                 }),
             )
-        
-        # FAILSAFE: Manual Entry
+
         return self.async_show_form(
             step_id="user",
             errors=errors,
-            description_placeholders={"error_info": "No devices found. Enter MAC Manually."},
             data_schema=vol.Schema({
-                vol.Required(CONF_ADDRESS): str,
+                vol.Required(CONF_ADDRESS): vol.In(discovered_devices),
                 vol.Optional(CONF_ENABLE_MQTT, default=False): bool,
             }),
         )
