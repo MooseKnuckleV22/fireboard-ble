@@ -1,7 +1,7 @@
 {
   "domain": "fireboard_ble",
   "name": "FireBoard BLE",
-  "version": "1.4.4",
+  "version": "1.4.5",
   "documentation": "https://github.com/MooseKnuckleV22/fireboard-ble",
   "dependencies": [],
   "codeowners": ["@MooseKnuckleV22"],

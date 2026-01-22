@@ -1,4 +1,4 @@
-"""Support for FireBoard BLE sensors (v1.5.0 - Thread-Safe Removal)."""
+"""Support for FireBoard BLE sensors (v1.4.5 - Source Diagnostics)."""
 from __future__ import annotations
 
 import logging
@@ -88,6 +88,7 @@ async def async_setup_entry(
     entities = []
     entities.append(FireboardRSSISensor(hub))
     entities.append(FireboardStatusSensor(hub))
+    entities.append(FireboardSourceSensor(hub))  # NEW: Source Sensor
     
     async_add_entities(entities)
     
@@ -114,11 +115,13 @@ class FireboardHub:
         self.sensors = {} 
         self.rssi_sensor = None
         self.status_sensor = None
+        self.source_sensor = None  # NEW
         self._running = True
         self._cancel_callback = None
 
     def register_rssi_sensor(self, sensor_entity): self.rssi_sensor = sensor_entity
     def register_status_sensor(self, sensor_entity): self.status_sensor = sensor_entity
+    def register_source_sensor(self, sensor_entity): self.source_sensor = sensor_entity # NEW
 
     def stop(self):
         self._running = False
@@ -133,9 +136,6 @@ class FireboardHub:
         current_time = time.time()
         to_remove = []
 
-        # (Optional) Comment out this log to reduce spam once verified working
-        # _LOGGER.debug(f"[FireBoard] Watchdog checking {len(self.sensors)} sensors...")
-
         for channel, sensor in self.sensors.items():
             age = current_time - sensor.last_update
             if age > TIMEOUT_SECONDS:
@@ -149,7 +149,7 @@ class FireboardHub:
                 # 1. Update state to unavailable FIRST
                 sensor.mark_unavailable()
                 
-                # 2. Force remove from registry (Now safe because function is async)
+                # 2. Force remove from registry
                 registry = er.async_get(self.hass)
                 if sensor.registry_entry:
                     registry.async_remove(sensor.entity_id)
@@ -174,8 +174,13 @@ class FireboardHub:
 
     @callback
     def _handle_bluetooth_event(self, service_info, change: BluetoothChange):
+        # Update RSSI
         if self.rssi_sensor and service_info.rssi != -100:
             self.rssi_sensor.update_rssi(service_info.rssi)
+        
+        # NEW: Update Source (Parent Device)
+        if self.source_sensor:
+            self.source_sensor.update_source(service_info.source)
 
     async def start(self):
         self._cancel_callback = async_register_callback(
@@ -236,10 +241,6 @@ class FireboardHub:
         self.update_status("Disconnected")
         _LOGGER.warning("[FireBoard] Device Disconnected.")
 
-    def _mark_all_unavailable(self):
-        for sensor in self.sensors.values():
-            sensor.mark_unavailable()
-
     def _handle_notification(self, sender, data):
         try:
             text = data.decode("utf-8")
@@ -253,7 +254,6 @@ class FireboardHub:
             if channel:
                 if temp is None or temp <= 0:
                     if channel in self.sensors:
-                        # Schedule the async removal safely
                         self.hass.async_create_task(self.remove_sensor_immediate(channel))
                 
                 elif channel in self.sensors:
@@ -366,4 +366,26 @@ class FireboardStatusSensor(SensorEntity):
     def update_status(self, status):
         if self._attr_native_value != status:
             self._attr_native_value = status
+            self.schedule_update_ha_state()
+
+class FireboardSourceSensor(SensorEntity):
+    """Shows which Bluetooth adapter (or Proxy) is seeing the device."""
+    _attr_has_entity_name = True
+    _attr_name = "Bluetooth Source"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_icon = "mdi:router-wireless"
+
+    def __init__(self, hub):
+        self._hub = hub
+        self._attr_unique_id = f"fireboard_{hub.mac}_source"
+        self._attr_native_value = "Unknown"
+        hub.register_source_sensor(self)
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        return DeviceInfo(identifiers={(DOMAIN, self._hub.mac)})
+
+    def update_source(self, source):
+        if self._attr_native_value != source:
+            self._attr_native_value = source
             self.schedule_update_ha_state()
