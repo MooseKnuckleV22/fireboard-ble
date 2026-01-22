@@ -83,15 +83,18 @@ class FireboardConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         for service_info in async_discovered_service_info(self.hass):
             if service_info.address in current_addresses:
                 continue
-                
-            # Match by UUID OR by Name (More robust)
+            
+            # SAFEGUARD: Handle None/Null names to prevent 500 Error
+            dev_name = service_info.name or ""
+            local_name = (service_info.advertisement.local_name) or ""
+            
             if (
                 "c2f780ec-45e1-452b-a879-327e3140d1f1" in service_info.service_uuids
-                or "FireBoard" in service_info.name
-                or "FireBoard" in service_info.advertisement.local_name
+                or "FireBoard" in dev_name
+                or "FireBoard" in local_name
             ):
                 discovered_devices[service_info.address] = (
-                    f"{service_info.name} ({service_info.address})"
+                    f"{dev_name} ({service_info.address})"
                 )
 
         # 2. LOGIC: IF FOUND -> DROPDOWN. IF NOT -> TEXT BOX.
