@@ -1,6 +1,6 @@
 # FireBoard BLE Custom Integration
 
-**Current Version:** 1.4.4
+**Current Version:** 1.4.5
 **Status:** Stable / Production
 **Last Updated:** January 22, 2026
 
@@ -17,11 +17,14 @@ This "Local-First" approach comes with specific trade-offs:
 1. **Limited Data:** The FireBoard hardware only broadcasts real-time temperature data via Bluetooth. It does not broadcast Battery Level, Drive Fan Speed, or Session Data.
 2. **Limited Connection:** The device can only maintain one Bluetooth connection at a time.
 
-If you require historical session data, battery levels, or fan control, please use the cloud-based "Fireboard2MQTT" integration available from the community, which utilizes the official FireBoard REST API.
+If you require historical session data, battery levels, or fan control, please use the cloud-based **[Fireboard2MQTT](https://github.com/gordlea/fireboard2mqtt)** integration available from the community, which utilizes the official FireBoard REST API.
 
 ---
 
 ### Version History
+
+**Version 1.4.5**
+* **ADDED:** Bluetooth Source Diagnostic Sensor. A new entity that displays exactly which Bluetooth adapter (e.g., `local` Raspberry Pi or a specific ESPHome Proxy) is currently effectively connected to the FireBoard. This is critical for troubleshooting "roaming" issues.
 
 **Version 1.4.4**
 * **IMPROVED:** Discovery logic is now case-insensitive, ensuring devices broadcasting "fireboard" (lowercase) or other variations are correctly detected in the setup list.
@@ -58,3 +61,24 @@ If you require historical session data, battery levels, or fan control, please u
 
 **Version 1.0.0**
 * Initial release. Proof of concept for local Bluetooth polling.
+
+---
+
+### Troubleshooting & Limitations
+
+#### 1. The "Connection Slot" Error (ESPHome Proxies)
+If you use ESPHome Bluetooth Proxies to extend range, be aware that the ESP32 hardware has a physical limit of 3 simultaneous active connections.
+
+If your proxy is already connected to 3 other devices (e.g., SwitchBot, Toothbrush, Plant Monitor), it physically cannot connect to the FireBoard.
+
+* **Fix:** Add an additional Bluetooth Proxy to your network to handle the load. This integration supports "Roaming" and will automatically find the free proxy.
+
+#### 2. The "One Connection" Rule
+The FireBoard device accepts only ONE active Bluetooth connection.
+* If your phone's FireBoard app connects via Bluetooth, Home Assistant will be blocked.
+* If Home Assistant connects, your phone app will fail to connect via Bluetooth (but will still work via WiFi/Cloud).
+
+* **Fix:** If the integration gets stuck on "Initializing" or "Retrying", turn off Bluetooth on your phone and power cycle the FireBoard unit.
+
+#### 3. "Ghost" Sensors
+If you unplug a probe, the sensor should disappear from Home Assistant within 30 seconds. If it does not, check the Logs. The integration requires a running Watchdog timer (updates every 10s) to perform this cleanup.
