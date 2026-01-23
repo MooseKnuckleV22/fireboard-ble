@@ -43,6 +43,17 @@ This integration works with any FireBoard device that broadcasts temperature dat
 
 ---
 
+### 📡 MQTT Forwarding (Optional)
+This integration includes an advanced feature to forward raw temperature data directly to your MQTT broker. This is useful if you want to ingest the data into other systems (like Node-RED or a custom dashboard) without relying on Home Assistant entities.
+
+* **How to Enable:** Check the "Enable MQTT Publishing" box during device setup.
+* **Topic Format:** `FireBoard-BLE-{MAC_SUFFIX}/{channel}`
+    * Example Ambient: `FireBoard-BLE-9F:3E/ambient`
+    * Example Probe 1: `FireBoard-BLE-9F:3E/probe1`
+* **Payload:** Raw numeric temperature value (e.g., `225.5`).
+
+---
+
 ### 🔎 Pre-Installation Checklist
 Before installing, ensure your FireBoard is visible to Home Assistant:
 
@@ -97,6 +108,10 @@ If you unplug a probe, the sensor should disappear from Home Assistant within 30
 ---
 
 ### Version History
+
+**Version 1.4.8**
+* **IMPROVED:** Device Info Page. The device model field now displays the full MAC address for easier identification. Added a direct "Visit Device" link to the FireBoard website.
+* **POLISHED:** Config Flow. Improved text and descriptions for the "Enable MQTT" option to clarify its advanced usage.
 
 **Version 1.4.7.1**
 * **IMPROVED:** Discovery Tile Naming. The Home Assistant discovery tile will now explicitly name the device found (e.g., `FireBoard-9F:3E`) instead of showing the generic integration ID.
@@ -186,7 +201,7 @@ action:
   - service: tts.cloud_say
     entity_id: media_player.kitchen_echo
     data:
-      message: "Attention. The brisket has stalled. You might want to wrap it now."
+      message: "Attention. The brisket has stalled. You might want to check the fire."
 ```
 
 #### 3. The "Dinner's Ready" Broadcast
