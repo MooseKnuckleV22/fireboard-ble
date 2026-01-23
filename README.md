@@ -48,8 +48,8 @@ This integration includes an advanced feature to forward raw temperature data di
 
 * **How to Enable:** Check the "Enable MQTT Publishing" box during device setup.
 * **Topic Format:** `FireBoard-BLE-{MAC_SUFFIX}/{channel}`
-    * Example Ambient: `FireBoard-BLE-9F:3E/ambient`
-    * Example Probe 1: `FireBoard-BLE-9F:3E/probe1`
+    * Example Probe 1: `FireBoard-BLE-XX:XX/probe1`
+    * Example Probe 2: `FireBoard-BLE-XX:XX/probe2`
 * **Payload:** Raw numeric temperature value (e.g., `225.5`).
 
 ---
@@ -113,11 +113,11 @@ If you unplug a probe, the sensor should disappear from Home Assistant within 30
 * **FIXED:** Configuration Dialog Text. Switched translation method to `translations/en.json` ensuring the "Enable MQTT" option is properly capitalized and the description text appears correctly for all users.
 
 **Version 1.4.8**
-* **IMPROVED:** Device Info Page. The device model field now displays the full MAC address for easier identification. Added a direct "Visit Device" link to the FireBoard website.
+* **IMPROVED:** Device Info Page. The device model field now displays the full MAC address (e.g., `FireBoard (XX:XX)`) for easier identification. Added a direct "Visit Device" link to the FireBoard website.
 * **POLISHED:** Config Flow. Improved text and descriptions for the "Enable MQTT" option to clarify its advanced usage.
 
 **Version 1.4.7.1**
-* **IMPROVED:** Discovery Tile Naming. The Home Assistant discovery tile will now explicitly name the device found (e.g., `FireBoard-9F:3E`) instead of showing the generic integration ID.
+* **IMPROVED:** Discovery Tile Naming. The Home Assistant discovery tile will now explicitly name the device found (e.g., `FireBoard-XX:XX`) instead of showing the generic integration ID.
 
 **Version 1.4.7**
 * **RESTORED:** Native Auto-Discovery. Updated logic to include devices broadcasting as `FIREBOARD` (all caps), `fireboard` (lowercase), or `FireBoard` (mixed case).
