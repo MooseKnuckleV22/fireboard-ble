@@ -96,7 +96,7 @@ If you absolutely need Fan Control or Battery data, please use the cloud-based *
 
 ### Troubleshooting
 
-#### 1. Device Not Found / Stuck on "Initializing"
+#### 1. Device Not Found / Stuck on "Scanning..."
 * **Check the App:** Open the official FireBoard app. If you see the **Bluetooth Icon**, your phone is "hogging" the connection. Turn off Bluetooth on your phone and restart the FireBoard integration in Home Assistant.
 * **Check Range:** Ensure the device is within 10-15 feet of your HA host or Proxy.
 * **Verify Signals:** Use the link in the Pre-Installation Checklist to confirm Home Assistant is receiving BLE packets.
