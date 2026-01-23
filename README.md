@@ -18,7 +18,7 @@ The official FireBoard Cloud API limits users to **200 requests per hour**. This
 
 **2. Instant Automations**
 Because we don't wait for a cloud polling interval, your automations run instantly.
-* *Example:* If your smoker spikes in temperature, Home Assistant will know immediately—not 40 seconds later when it's too late.
+* *Example:* If your smoker spikes in temperature due to a grease fire, Home Assistant will know immediately—not 40 seconds later when it's too late.
 
 **3. Privacy & Stability**
 Your data never leaves your house. If your internet goes down during a long cook, your local dashboard and alerts keep working perfectly.
@@ -43,6 +43,18 @@ This integration works with any FireBoard device that broadcasts temperature dat
 
 ---
 
+### 🔎 Pre-Installation Checklist
+Before installing, ensure your FireBoard is visible to Home Assistant:
+
+1.  **Check for Visibility:** Ensure your Home Assistant host (or ESPHome Proxy) is within range of the FireBoard.
+    * *Tip:* If the Auto-Discovery tile does not appear, you can verify visibility by checking the **Bluetooth** integration in Home Assistant to see if it lists the device in the "Recently Seen" or debug logs.
+2.  **Free up the Connection:** The FireBoard can only talk to **one** Bluetooth device at a time.
+    * **The "Bluetooth Icon" Test:** Open the official FireBoard app on your phone. Look at the dashboard status icons (WiFi, Battery, etc.).
+    * ❌ **If you see a Bluetooth symbol:** Your phone is holding the connection. Home Assistant **cannot** connect. **Turn off your phone's Bluetooth** to release the device.
+    * ✅ **If the Bluetooth symbol is missing (WiFi only):** The connection slot is free, and Home Assistant can grab it.
+
+---
+
 ### Installation
 
 **Method 1: HACS (Recommended)**
@@ -63,9 +75,24 @@ This integration works with any FireBoard device that broadcasts temperature dat
 This integration follows a "Local-First" philosophy. It reads exactly what the device broadcasts over the air.
 * **Data:** It provides Real-Time Temperatures, Signal Strength, and Connection Diagnostics.
 * **Missing Data:** The FireBoard hardware *does not* broadcast Battery Level, Fan Speed, or Session History via Bluetooth.
-* **Single Connection:** The device accepts only **one** active Bluetooth connection at a time. If you connect with this integration, the official FireBoard app will not be able to connect via Bluetooth (but will still work via WiFi).
+* **Single Connection:** As mentioned above, if you connect with this integration, the official FireBoard app will not be able to connect via Bluetooth (but will still work via WiFi).
 
 If you absolutely need Fan Control or Battery data, please use the cloud-based **[Fireboard2MQTT](https://github.com/gordlea/fireboard2mqtt)** integration, which uses the official REST API (subject to the 200 req/hr limit).
+
+---
+
+### Troubleshooting
+
+#### 1. Device Not Found / Stuck on "Initializing"
+* **Check the App:** Open the official FireBoard app. If you see the **Bluetooth Icon**, your phone is "hogging" the connection. Turn off Bluetooth on your phone and restart the FireBoard integration in Home Assistant.
+* **Check Range:** Ensure the device is within 10-15 feet of your HA host or Proxy.
+
+#### 2. The "Connection Slot" Error (ESPHome Proxies)
+ESPHome Proxies have a physical limit of 3 simultaneous active connections. If your proxy is busy with other devices (SwitchBot, Toothbrush, etc.), it cannot connect to the FireBoard.
+* **Fix:** Add an additional Bluetooth Proxy to your network. This integration supports "Roaming" and will automatically find the free proxy.
+
+#### 3. "Ghost" Sensors
+If you unplug a probe, the sensor should disappear from Home Assistant within 30 seconds. If it does not, check your logs to ensure the Watchdog timer is running.
 
 ---
 
@@ -84,15 +111,25 @@ If you absolutely need Fan Control or Battery data, please use the cloud-based *
 **Version 1.4.5**
 * **IMPROVED:** Discovery logic is now case-insensitive.
 
+**Version 1.4.4**
+* **FIXED:** Resolved "500 Internal Server Error" crash during setup caused by nearby Bluetooth devices broadcasting without a name.
+
 **Version 1.4.3**
-* **FIXED:** Resolved setup crash caused by anonymous Bluetooth devices.
+* **ADDED:** Failsafe Manual Entry.
+* **IMPROVED:** Enhanced Discovery Logic.
+
+**Version 1.4.2**
+* **FIXED:** Added missing `config_flow: true` to manifest.
+
+**Version 1.4.1**
+* **IMPROVED:** Refined Config Flow logic.
 
 **Version 1.4.0**
 * **ADDED:** Zero-Configuration Discovery & Dynamic Probes.
 * **ADDED:** Split MQTT Publishing & Proxy Exhaustion Handling.
 
 **Version 1.3.0**
-* **ADDED:** Smart Units (F/C detection) & Device Time attribute.
+* **ADDED:** Smart Units (F/C detection) & Device Time.
 
 **Version 1.2.0**
 * **ADDED:** Full support for ESPHome Bluetooth Proxies.
@@ -102,15 +139,48 @@ If you absolutely need Fan Control or Battery data, please use the cloud-based *
 
 ---
 
-### Troubleshooting
+### 💡 Cook Book: Automation Examples
+Because this integration provides **real-time** data, you can create safety and convenience automations that react instantly.
 
-#### 1. The "Connection Slot" Error (ESPHome Proxies)
-ESPHome Proxies have a physical limit of 3 simultaneous active connections. If your proxy is busy with other devices (SwitchBot, Toothbrush, etc.), it cannot connect to the FireBoard.
-* **Fix:** Add an additional Bluetooth Proxy to your network. This integration supports "Roaming" and will automatically find the free proxy.
+<details>
+<summary><strong>Click to expand Automation YAML examples</strong></summary>
 
-#### 2. The "One Connection" Rule
-If your phone's FireBoard app is connected via Bluetooth, Home Assistant will be blocked.
-* **Fix:** Turn off Bluetooth on your phone or walk out of range to let Home Assistant take over.
-
-#### 3. "Ghost" Sensors
-If you unplug a probe, the sensor should disappear from Home Assistant within 30 seconds. If it does not, check your logs to ensure the Watchdog timer is running.
+#### 1. The "Grease Fire" Alarm (Flare-Up Detection)
+*Why this works:* If your pit temperature spikes suddenly, you need to know **now**, not in 45 seconds.
+```yaml
+alias: "BBQ: Critical Flare-Up Warning"
+description: "Flash kitchen lights RED if smoker temp jumps above 400°F"
+trigger:
+  - platform: numeric_state
+    entity_id: sensor.fireboard_ambient
+    above: 400
+action:
+  - service: light.turn_on
+    target:
+      entity_id: light.kitchen_lights
+    data:
+      color_name: "red"
+      flash: "long"
+  - service: tts.google_translate_say
+    entity_id: media_player.living_room_speaker
+    data:
+      message: "Warning! The smoker temperature is critically high. Check for fire."
+      
+#### 2. The "Stall" Buster (Voice Announcement)
+*Why this works: Uses Home Assistant's trend logic to detect when your brisket stops rising
+```yaml
+alias: "BBQ: Meat Stall Detected"
+description: "Announce when meat temperature hasn't risen for 30 minutes"
+trigger:
+  - platform: state
+    entity_id: binary_sensor.brisket_rising_trend
+    to: "off"
+    for: "00:30:00"
+action:
+  - service: notify.mobile_app_iphone
+    data:
+      message: "The brisket has hit the stall at {{ states('sensor.fireboard_probe_1') }}°. Time to wrap?"
+  - service: tts.cloud_say
+    entity_id: media_player.kitchen_echo
+    data:
+      message: "Attention. The brisket has stalled. Time to wrap."
