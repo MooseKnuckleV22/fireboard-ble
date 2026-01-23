@@ -1,4 +1,4 @@
-"""Support for FireBoard BLE sensors (v1.4.7)."""
+"""Support for FireBoard BLE sensors (v1.4.8)."""
 from __future__ import annotations
 
 import logging
@@ -118,6 +118,17 @@ class FireboardHub:
         self.source_sensor = None 
         self._running = True
         self._cancel_callback = None
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device registry information for this entity."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self.mac)},
+            name=self.device_name,
+            manufacturer="FireBoard Labs",
+            model=self.mac,
+            configuration_url="https://www.fireboard.com"
+        )
 
     def register_rssi_sensor(self, sensor_entity): self.rssi_sensor = sensor_entity
     def register_status_sensor(self, sensor_entity): self.status_sensor = sensor_entity
@@ -298,11 +309,7 @@ class FireboardProbeSensor(SensorEntity):
 
     @property
     def device_info(self) -> DeviceInfo:
-        return DeviceInfo(
-            identifiers={(DOMAIN, self._hub.mac)},
-            name=self._hub.device_name,
-            manufacturer="FireBoard Labs"
-        )
+        return self._hub.device_info
 
     def update_temp(self, temp, degreetype, device_date):
         if degreetype == 1:
@@ -339,7 +346,7 @@ class FireboardRSSISensor(SensorEntity):
 
     @property
     def device_info(self) -> DeviceInfo:
-        return DeviceInfo(identifiers={(DOMAIN, self._hub.mac)})
+        return self._hub.device_info
 
     def update_rssi(self, rssi):
         self._attr_native_value = rssi
@@ -359,7 +366,7 @@ class FireboardStatusSensor(SensorEntity):
 
     @property
     def device_info(self) -> DeviceInfo:
-        return DeviceInfo(identifiers={(DOMAIN, self._hub.mac)})
+        return self._hub.device_info
 
     def update_status(self, status):
         if self._attr_native_value != status:
@@ -369,7 +376,7 @@ class FireboardStatusSensor(SensorEntity):
 class FireboardSourceSensor(SensorEntity):
     """Shows which Bluetooth adapter (or Proxy) is seeing the device."""
     _attr_has_entity_name = True
-    _attr_name = "Connected Via"  # RENAME APPLIED HERE
+    _attr_name = "Connected Via"
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_icon = "mdi:router-wireless"
 
@@ -381,7 +388,7 @@ class FireboardSourceSensor(SensorEntity):
 
     @property
     def device_info(self) -> DeviceInfo:
-        return DeviceInfo(identifiers={(DOMAIN, self._hub.mac)})
+        return self._hub.device_info
 
     def update_source(self, source):
         if self._attr_native_value != source:
