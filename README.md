@@ -58,11 +58,13 @@ This integration includes an advanced feature to forward raw temperature data di
 Before installing, ensure your FireBoard is visible to Home Assistant:
 
 1.  **Check for Visibility:** Ensure your Home Assistant host (or ESPHome Proxy) is within range of the FireBoard.
-    * *Tip:* If the Auto-Discovery tile does not appear, you can verify visibility by checking the **Bluetooth** integration in Home Assistant to see if it lists the device in the "Recently Seen" or debug logs.
+    * **How to Verify:** Navigate to the Bluetooth Advertisement Monitor in Home Assistant to see if your device is being detected.
+    * **Link:** `http://<your-ha-address>:<port>/config/bluetooth/advertisement-monitor`
+    * *Note:* Replace `<your-ha-address>:<port>` with your actual address (e.g., `192.168.1.10:8123` or `homeassistant.local:8123`).
 2.  **Free up the Connection:** The FireBoard can only talk to **one** Bluetooth device at a time.
-    * **The "Bluetooth Icon" Test:** Open the official FireBoard app on your phone. Look at the dashboard status icons (WiFi, Battery, etc.).
-    * ❌ **If you see a Bluetooth symbol:** Your phone is holding the connection. Home Assistant **cannot** connect. **Turn off your phone's Bluetooth** to release the device.
-    * ✅ **If the Bluetooth symbol is missing (WiFi only):** The connection slot is free, and Home Assistant can grab it.
+    * **The "Bluetooth Icon" Test:** Look at your physical FireBoard screen or the official FireBoard app dashboard.
+    * ❌ **If you see a Bluetooth symbol:** It means your phone has "hijacked" the connection. Home Assistant **cannot** see or connect to the device while your phone is connected.
+    * ✅ **Solution:** Turn off Bluetooth on your phone/tablet to release the connection. Once the icon disappears, Home Assistant can grab it.
 
 ---
 
@@ -97,6 +99,7 @@ If you absolutely need Fan Control or Battery data, please use the cloud-based *
 #### 1. Device Not Found / Stuck on "Initializing"
 * **Check the App:** Open the official FireBoard app. If you see the **Bluetooth Icon**, your phone is "hogging" the connection. Turn off Bluetooth on your phone and restart the FireBoard integration in Home Assistant.
 * **Check Range:** Ensure the device is within 10-15 feet of your HA host or Proxy.
+* **Verify Signals:** Use the link in the Pre-Installation Checklist to confirm Home Assistant is receiving BLE packets.
 
 #### 2. The "Connection Slot" Error (ESPHome Proxies)
 ESPHome Proxies have a physical limit of 3 simultaneous active connections. If your proxy is busy with other devices (SwitchBot, Toothbrush, etc.), it cannot connect to the FireBoard.
