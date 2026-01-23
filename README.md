@@ -109,6 +109,9 @@ If you unplug a probe, the sensor should disappear from Home Assistant within 30
 
 ### Version History
 
+**Version 1.4.8.1**
+* **FIXED:** Configuration Dialog Text. Switched translation method to `translations/en.json` ensuring the "Enable MQTT" option is properly capitalized and the description text appears correctly for all users.
+
 **Version 1.4.8**
 * **IMPROVED:** Device Info Page. The device model field now displays the full MAC address for easier identification. Added a direct "Visit Device" link to the FireBoard website.
 * **POLISHED:** Config Flow. Improved text and descriptions for the "Enable MQTT" option to clarify its advanced usage.
