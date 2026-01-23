@@ -58,7 +58,7 @@ This integration includes an advanced feature to forward raw temperature data di
 Before installing, ensure your FireBoard is visible to Home Assistant:
 
 1.  **Check for Visibility:** Ensure your Home Assistant host (or ESPHome Proxy) is within range of the FireBoard.
-    * **How to Verify:** Navigate to the Bluetooth Advertisement Monitor in Home Assistant to see if your device is being detected.
+    * **How to Verify:** Navigate to the Bluetooth Advertisement Monitor in Home Assistant. Search for **"FIREBOARD"** in the name; if it appears, your device is broadcasting and visible.
     * **Link:** `http://<your-ha-address>:<port>/config/bluetooth/advertisement-monitor`
     * *Note:* Replace `<your-ha-address>:<port>` with your actual address (e.g., `192.168.1.10:8123` or `homeassistant.local:8123`).
 2.  **Free up the Connection:** The FireBoard can only talk to **one** Bluetooth device at a time.
