@@ -147,6 +147,7 @@ Because this integration provides **real-time** data, you can create safety and 
 
 #### 1. The "Grease Fire" Alarm (Flare-Up Detection)
 *Why this works:* If your pit temperature spikes suddenly, you need to know **now**, not in 45 seconds.
+
 ```yaml
 alias: "BBQ: Critical Flare-Up Warning"
 description: "Flash kitchen lights RED if smoker temp jumps above 400°F"
@@ -165,9 +166,11 @@ action:
     entity_id: media_player.living_room_speaker
     data:
       message: "Warning! The smoker temperature is critically high. Check for fire."
-      
+```
+
 #### 2. The "Stall" Buster (Voice Announcement)
-*Why this works: Uses Home Assistant's trend logic to detect when your brisket stops rising
+*Why this works:* Uses Home Assistant's trend logic to detect when your brisket stops rising.
+
 ```yaml
 alias: "BBQ: Meat Stall Detected"
 description: "Announce when meat temperature hasn't risen for 30 minutes"
@@ -183,4 +186,29 @@ action:
   - service: tts.cloud_say
     entity_id: media_player.kitchen_echo
     data:
-      message: "Attention. The brisket has stalled. Time to wrap."
+      message: "Attention. The brisket has stalled. You might want to wrap it now."
+```
+
+#### 3. The "Dinner's Ready" Broadcast
+*Why this works:* Perfect timing for serving steaks.
+
+```yaml
+alias: "BBQ: Steak is Medium Rare"
+trigger:
+  - platform: numeric_state
+    entity_id: sensor.fireboard_probe_1
+    above: 130
+action:
+  - service: media_player.play_media
+    target:
+      entity_id: media_player.whole_house
+    data:
+      media_content_id: "[http://homeassistant.local:8123/local/dinner_bell.mp3](http://homeassistant.local:8123/local/dinner_bell.mp3)"
+      media_content_type: "music"
+  - service: notify.alexa_media
+    data:
+      message: "The steaks have reached 130 degrees. Please remove them from the grill."
+      target: media_player.patio_dot
+```
+
+</details>
