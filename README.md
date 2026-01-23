@@ -1,72 +1,116 @@
-# FireBoard BLE Custom Integration
+# FireBoard BLE Integration for Home Assistant
 
-**Current Version:** 1.4.7.1
-**Status:** Stable / Production
-**Last Updated:** January 22, 2026
+**Monitor your FireBoard thermometer locally, privately, and instantly.**
+
+This Custom Integration connects your **FireBoard** meat thermometer directly to **Home Assistant** using Bluetooth (BLE). It is completely **Local-First**, meaning it works 100% offline. No cloud account, no API keys, and no internet connection required.
+
+Whether you are smoking a brisket in the backyard or monitoring a sous vide station, this integration ensures your temperature data stays private and your automations run instantly—even if your internet goes down.
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/MooseKnuckleV22/fireboard-ble)
 
 ---
 
-### Purpose & Scope
-The primary purpose of this integration is to enable 100% LOCAL, private, and fast temperature monitoring for FireBoard devices via Bluetooth.
+### 🚀 Why Go Local? (Cloud vs. Bluetooth)
 
-It bypasses the FireBoard Cloud API entirely, ensuring that your automations work even if your internet goes down or the FireBoard servers have an outage.
+**1. No API Limits**
+The official FireBoard Cloud API limits users to **200 requests per hour**. This restricts other integrations (like *Fireboard2MQTT*) to updating your temperature data only once every **20-40 seconds**.
+* **FireBoard BLE:** Zero limits. We listen to the Bluetooth advertisements directly, giving you **real-time updates** (often every 3-5 seconds) as fast as the device broadcasts them.
 
-This "Local-First" approach comes with specific trade-offs:
-1. **Limited Data:** The FireBoard hardware only broadcasts real-time temperature data via Bluetooth. It does not broadcast Battery Level, Drive Fan Speed, or Session Data.
-2. **Limited Connection:** The device can only maintain one Bluetooth connection at a time.
+**2. Instant Automations**
+Because we don't wait for a cloud polling interval, your automations run instantly.
+* *Example:* If your smoker spikes in temperature, Home Assistant will know immediately—not 40 seconds later when it's too late.
 
-If you require historical session data, battery levels, or fan control, please use the cloud-based **[Fireboard2MQTT](https://github.com/gordlea/fireboard2mqtt)** integration available from the community, which utilizes the official FireBoard REST API.
+**3. Privacy & Stability**
+Your data never leaves your house. If your internet goes down during a long cook, your local dashboard and alerts keep working perfectly.
+
+---
+
+### ✅ Supported Devices
+This integration works with any FireBoard device that broadcasts temperature data via Bluetooth Low Energy (BLE), including:
+* **FireBoard 2** (Drive & Pro)
+* **FireBoard Spark**
+* **FireBoard 1** (Original)
+* *Any other FireBoard model broadcasting standard BLE advertisements*
+
+---
+
+### ⚡ Key Features
+* **100% Local Control:** Bypasses the FireBoard Cloud API entirely.
+* **Auto-Discovery:** Automatically detects FireBoard devices nearby for "Plug-and-Play" setup.
+* **Plug-and-Play Probes:** Sensors are created dynamically when you plug in a probe and cleaned up automatically when unplugged.
+* **Smart Units:** Automatically detects if your device is set to Fahrenheit or Celsius.
+* **ESPHome Ready:** Fully supports ESPHome Bluetooth Proxies to extend your range to the backyard or patio.
+
+---
+
+### Installation
+
+**Method 1: HACS (Recommended)**
+1. Open HACS in Home Assistant.
+2. Click **Integrations** > **Three Dots (Top Right)** > **Custom Repositories**.
+3. Add URL: `https://github.com/MooseKnuckleV22/fireboard-ble`
+4. Category: **Integration**.
+5. Click **Add**, then search for "FireBoard BLE" and install.
+6. Restart Home Assistant.
+
+**Method 2: Manual**
+1. Copy the `custom_components/fireboard_ble` folder to your HA config directory.
+2. Restart Home Assistant.
+
+---
+
+### Scope & Limitations
+This integration follows a "Local-First" philosophy. It reads exactly what the device broadcasts over the air.
+* **Data:** It provides Real-Time Temperatures, Signal Strength, and Connection Diagnostics.
+* **Missing Data:** The FireBoard hardware *does not* broadcast Battery Level, Fan Speed, or Session History via Bluetooth.
+* **Single Connection:** The device accepts only **one** active Bluetooth connection at a time. If you connect with this integration, the official FireBoard app will not be able to connect via Bluetooth (but will still work via WiFi).
+
+If you absolutely need Fan Control or Battery data, please use the cloud-based **[Fireboard2MQTT](https://github.com/gordlea/fireboard2mqtt)** integration, which uses the official REST API (subject to the 200 req/hr limit).
 
 ---
 
 ### Version History
 
 **Version 1.4.7.1**
-* **IMPROVED:** Discovery Tile Naming. The Home Assistant discovery tile will now explicitly name the device found (e.g., `FireBoard-9F:3E`) instead of showing the generic integration ID. This helps distinguish between multiple FireBoards at events like BBQ competitions.
+* **IMPROVED:** Discovery Tile Naming. The Home Assistant discovery tile will now explicitly name the device found (e.g., `FireBoard-9F:3E`) instead of showing the generic integration ID.
 
 **Version 1.4.7**
-* **RESTORED:** Native Auto-Discovery. The "Discovered" tile will now correctly appear in the Home Assistant dashboard when a FireBoard is detected nearby. Updated logic to include devices broadcasting as `FIREBOARD` (all caps), `fireboard` (lowercase), or `FireBoard` (mixed case).
-* **IMPROVED:** Renamed the Diagnostic Sensor to **"Connected Via"**. This user-friendly label clearly indicates which device (e.g., `local` Raspberry Pi or `esphome-proxy-kitchen`) is currently bridging the connection to the FireBoard.
+* **RESTORED:** Native Auto-Discovery. Updated logic to include devices broadcasting as `FIREBOARD` (all caps), `fireboard` (lowercase), or `FireBoard` (mixed case).
+* **IMPROVED:** Renamed the Diagnostic Sensor to **"Connected Via"**. Clearly indicates which device (e.g., `local` Raspberry Pi or `esphome-proxy-kitchen`) is bridging the connection.
 
 **Version 1.4.6**
-* **ADDED:** Diagnostic Sensor (backend support). Added logic to track the active Bluetooth source adapter.
+* **ADDED:** Diagnostic Sensor backend support.
 
 **Version 1.4.5**
 * **IMPROVED:** Discovery logic is now case-insensitive.
 
-**Version 1.4.4**
-* **FIXED:** Resolved "500 Internal Server Error" crash during setup caused by nearby Bluetooth devices broadcasting without a name.
-
 **Version 1.4.3**
-* **ADDED:** Failsafe Manual Entry. If the automatic Bluetooth scan fails to find a device, the setup screen now provides a text box to manually enter the MAC address.
-* **IMPROVED:** Enhanced Discovery Logic. The scanner now searches for devices broadcasting the name "FireBoard" in addition to the strict Service UUID, improving detection reliability.
-
-**Version 1.4.2**
-* **FIXED:** Added missing `config_flow: true` to manifest, allowing installation via the Home Assistant UI.
-
-**Version 1.4.1**
-* **IMPROVED:** Refined Config Flow logic for smoother Bluetooth scanning during setup.
+* **FIXED:** Resolved setup crash caused by anonymous Bluetooth devices.
 
 **Version 1.4.0**
-* **ADDED:** Zero-Configuration Discovery. The integration now scans for nearby FireBoards and presents a dropdown list during setup.
-* **ADDED:** Dynamic "Plug-and-Play" Probes. Sensors are created in Home Assistant immediately when a probe is plugged in and are removed 30 seconds after being unplugged.
-* **ADDED:** Split MQTT Publishing. If enabled, data is published to granular topics (e.g., `.../probe1`, `.../ambient`) for easier consumption by other tools.
-* **ADDED:** Proxy Exhaustion Handler. Intelligent back-off logic when connecting via full ESPHome proxies.
+* **ADDED:** Zero-Configuration Discovery & Dynamic Probes.
+* **ADDED:** Split MQTT Publishing & Proxy Exhaustion Handling.
 
 **Version 1.3.0**
-* **ADDED:** Smart Units. Automatically detects if the device is set to Celsius or Fahrenheit.
-* **ADDED:** Device Time attribute for data freshness verification.
-* **FIXED:** Device Naming logic.
+* **ADDED:** Smart Units (F/C detection) & Device Time attribute.
 
 **Version 1.2.0**
-* **ADDED:** Full support for ESPHome Bluetooth Proxies with automatic roaming.
-* **IMPROVED:** Connection stability and retry logic.
-
-**Version 1.1.0**
-* **ADDED:** Config Flow support.
-* **REMOVED:** Hardcoded dependencies.
+* **ADDED:** Full support for ESPHome Bluetooth Proxies.
 
 **Version 1.0.0**
-* Initial release. Proof of concept for local Bluetooth polling.
+* Initial release.
+
+---
+
+### Troubleshooting
+
+#### 1. The "Connection Slot" Error (ESPHome Proxies)
+ESPHome Proxies have a physical limit of 3 simultaneous active connections. If your proxy is busy with other devices (SwitchBot, Toothbrush, etc.), it cannot connect to the FireBoard.
+* **Fix:** Add an additional Bluetooth Proxy to your network. This integration supports "Roaming" and will automatically find the free proxy.
+
+#### 2. The "One Connection" Rule
+If your phone's FireBoard app is connected via Bluetooth, Home Assistant will be blocked.
+* **Fix:** Turn off Bluetooth on your phone or walk out of range to let Home Assistant take over.
+
+#### 3. "Ghost" Sensors
+If you unplug a probe, the sensor should disappear from Home Assistant within 30 seconds. If it does not, check your logs to ensure the Watchdog timer is running.
