@@ -1,6 +1,6 @@
 # FireBoard BLE Integration for Home Assistant
 
-**Monitor your FireBoard thermometer locally, privately, and instantly.**
+**Monitor your FireBoard thermometer LOCALLY, privately, and instantly.**
 
 This Custom Integration connects your **FireBoard** meat thermometer directly to **Home Assistant** using Bluetooth (BLE). It is completely **Local-First**, meaning it works 100% offline. No cloud account, no API keys, and no internet connection required.
 
